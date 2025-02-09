@@ -1,8 +1,10 @@
 package main
 
-import "fmt"
-
+import (
+    "beauty/game"
+)
 
 func main() {
-    fmt.Println("Beauty Contest")
+    gameInstance, scanner := game.InitGame()
+    game.PlayGame(gameInstance, scanner)
 }
