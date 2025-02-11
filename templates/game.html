@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Game - Hub {{.HubHash}}</title>
+</head>
+<body>
+    <h1>Hub: {{.HubHash}}</h1>
+    <h2>Your Name: {{.Name}}</h2>
+    <div id="players">
+         <!-- List of players and their responses will appear here -->
+    </div>
+    <div>
+         <input type="number" id="numberInput" min="0" max="100" placeholder="Enter a number (0-100)">
+         <button id="sendBtn">Send</button>
+    </div>
+    <div id="result">
+         <!-- When the round completes, the average result is shown here -->
+    </div>
+
+    <script>
+        const hubHash = "{{.HubHash}}";
+        const name = "{{.Name}}";
+        const ws = new WebSocket("ws://" + window.location.host + "/ws?hub=" + hubHash + "&name=" + encodeURIComponent(name));
+
+        ws.onopen = function() {
+            console.log("Connected to hub " + hubHash);
+        };
+
+        ws.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                if(data.type === "state") {
+                    let html = "<h3>Players</h3><ul>";
+                    data.players.forEach(function(player) {
+                        html += "<li>" + player.name + " : " + player.response + "</li>";
+                    });
+                    html += "</ul>";
+                    document.getElementById("players").innerHTML = html;
+                    document.getElementById("result").innerText = "";
+                } else if(data.type === "result") {
+                    let html = "<h3>Round Result</h3><ul>";
+                    data.players.forEach(function(player) {
+                        html += "<li>" + player.name + " : " + player.response + "</li>";
+                    });
+                    html += "</ul>";
+                    html += "<p>Average: " + data.average.toFixed(2) + "</p>";
+                    document.getElementById("players").innerHTML = html;
+                    document.getElementById("result").innerText = "Round complete. Resetting in 10 seconds...";
+                }
+            } catch(e) {
+                console.error("Error parsing message", e);
+            }
+        };
+
+        ws.onclose = function() {
+            alert("WebSocket connection closed.");
+        };
+
+        document.getElementById("sendBtn").addEventListener("click", function() {
+            const num = document.getElementById("numberInput").value;
+            if(num !== "") {
+                ws.send(num);
+                document.getElementById("numberInput").value = "";
+            }
+        });
+    </script>
+</body>
+</html>
+
