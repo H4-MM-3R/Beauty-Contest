@@ -116,7 +116,7 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 		conn:       conn,
 		send:       make(chan []byte, 256),
 		name:       name,
-		score:      10,
+		score:      3,
 		eliminated: false,
 	}
 	hub.register <- client

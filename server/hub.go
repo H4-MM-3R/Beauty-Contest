@@ -6,44 +6,38 @@ import (
 	"time"
 )
 
-// -------------------- Data Structures --------------------
+// -------------------- Types --------------------
 
-// PlayerState represents one player’s current status.
 type PlayerState struct {
 	Name       string      `json:"name"`
-	Response   interface{} `json:"response"` // either an int or a string (e.g. "still needs to respond")
+	Response   interface{} `json:"response"` 
 	Score      int         `json:"score"`
 	Eliminated bool        `json:"eliminated"`
 }
 
-// StateMessage is broadcast to all clients.
 type StateMessage struct {
-	Type    string        `json:"type"` // "state", "result", or "gameover"
+	Type    string        `json:"type"` 
 	Players []PlayerState `json:"players"`
 	Target  *float64      `json:"target,omitempty"`
 	Average *float64      `json:"average,omitempty"`
 	Winners []string      `json:"winners,omitempty"`
 }
 
-// Response wraps a client’s submitted value.
 type Response struct {
 	client *Client
 	value  int
 }
 
-// Hub maintains the set of active clients, current responses, and round state.
 type Hub struct {
 	clients    map[*Client]bool
 	register   chan *Client
 	unregister chan *Client
 	response   chan *Response
-	// responses stores the active players’ responses for the current round.
 	responses   map[*Client]int
-	roundLocked bool // true after round completion, until reset
-	gameOver    bool // true if game is finished
+	roundLocked bool 
+	gameOver    bool 
 }
 
-// newHub creates a new Hub instance.
 func newHub() *Hub {
 	return &Hub{
 		clients:    make(map[*Client]bool),
@@ -140,9 +134,14 @@ func (h *Hub) run() {
 
 		case res := <-h.response:
 			// Ignore responses if the round is locked or the client is eliminated.
-			if h.roundLocked || res.client.eliminated {
+			if h.roundLocked {
 				break
 			}
+            if res.client.eliminated {
+		    	h.broadcastState("eliminated", nil, nil, nil)
+            }
+
+
 			// Record the response only if not already recorded.
 			if _, exists := h.responses[res.client]; !exists {
 				h.responses[res.client] = res.value
@@ -197,15 +196,12 @@ func (h *Hub) run() {
 					}
 					if !isWinner {
 						client.score--
-						if client.score <= -10 {
+						if client.score <= 0 {
 							client.eliminated = true
 						}
 					}
 				}
 
-				// Broadcast round result (including average and target).
-				h.broadcastState("result", &avg, &target, winners)
-				h.roundLocked = true
 
 				// Check for game over.
 				activePlayers := 0
@@ -214,11 +210,17 @@ func (h *Hub) run() {
 						activePlayers++
 					}
 				}
+
 				if activePlayers <= 1 {
 					h.broadcastState("gameover", &avg, &target, winners)
+                    h.roundLocked = true
 				} else {
+                    // Broadcast round result (including average and target).
+                    h.broadcastState("result", &avg, &target, winners)
+                    h.roundLocked = true
 					resetTimer = time.After(10 * time.Second)
 				}
+
 			} else {
 				// Not all active players have responded yet: broadcast ongoing state.
 				h.broadcastState("state", nil, nil, nil)

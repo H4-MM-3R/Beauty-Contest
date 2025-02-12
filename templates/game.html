@@ -65,6 +65,7 @@
         ws.onmessage = function(event) {
             try {
                 const data = JSON.parse(event.data);
+                console.log("data is", data)
                 // Separate active and eliminated players.
                 const activePlayers = [];
                 const eliminatedPlayers = [];
@@ -79,7 +80,7 @@
                 let activeHTML = "";
                 activePlayers.forEach(function(player) {
                     activeHTML += "<li>" + player.name + " (Score: " + player.score + ") - ";
-                    activeHTML += (typeof player.response === "number") ? player.response : player.response;
+                    activeHTML += (typeof player.response === "number") ? "Responded" : player.response;
                     activeHTML += "</li>";
                 });
                 document.getElementById("activeList").innerHTML = activeHTML;
@@ -89,6 +90,10 @@
                     elimHTML += "<li>" + player.name + " (Score: " + player.score + ")</li>";
                 });
                 document.getElementById("eliminatedList").innerHTML = elimHTML;
+
+                if(data.players.find(p => p.name === name) && p.eliminated){
+                    alert("You have been eliminated from the game.")
+                }
                 
                 // Show round info if available.
                 if(data.type === "result") {
