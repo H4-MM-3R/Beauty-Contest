@@ -5,7 +5,7 @@
     <title>Home - Hub App</title>
 </head>
 <body>
-    <h1>Welcome to the Hub App</h1>
+    <h1>Welcome to the Keynesian Beauty Contest Game</h1>
     <button id="createHubBtn">Create New Hub</button>
     <br><br>
     <form id="joinHubForm">
@@ -30,7 +30,7 @@
                         alert("Name is required");
                         return;
                     }
-                    // Redirect to the game page with the hub hash and name.
+                    // Redirect to the game page with hub hash and name.
                     window.location.href = "/" + data.hub + "?name=" + encodeURIComponent(name);
                 }
             })

@@ -11,16 +11,9 @@ import (
 )
 
 const (
-	// Time allowed to write a message to the peer.
-	writeWait = 10 * time.Second
-
-	// Time allowed to read the next pong message from the peer.
-	pongWait = 60 * time.Second
-
-	// Send pings to peer with this period. Must be less than pongWait.
-	pingPeriod = (pongWait * 9) / 10
-
-	// Maximum message size allowed from peer.
+	writeWait      = 10 * time.Second
+	pongWait       = 60 * time.Second
+	pingPeriod     = (pongWait * 9) / 10
 	maxMessageSize = 512
 )
 
@@ -31,14 +24,16 @@ var (
 
 // Client represents a connected WebSocket client.
 type Client struct {
-	hub  *Hub
-	conn *websocket.Conn
-	send chan []byte
-	name string // Unique name chosen by the user.
+	hub       *Hub
+	conn      *websocket.Conn
+	send      chan []byte
+	name      string
+	score     int  // starting score is 10
+	eliminated bool
 }
 
-// readPump reads messages from the WebSocket connection, parses them as integers,
-// and sends them to the hub as responses.
+// readPump reads messages from the WebSocket connection.
+// It expects the message to be a number (as a string) between 0 and 100.
 func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
@@ -62,8 +57,7 @@ func (c *Client) readPump() {
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 		num, err := strconv.Atoi(string(message))
 		if err != nil {
-			errMsg := []byte(fmt.Sprintf("Invalid input: %s", message))
-			c.send <- errMsg
+			c.send <- []byte(fmt.Sprintf("Invalid input: %s", message))
 			continue
 		}
 		if num < 0 || num > 100 {
@@ -97,7 +91,7 @@ func (c *Client) writePump() {
 			}
 			w.Write(message)
 
-			// Write any queued messages.
+			// Write queued messages.
 			n := len(c.send)
 			for i := 0; i < n; i++ {
 				w.Write(newline)

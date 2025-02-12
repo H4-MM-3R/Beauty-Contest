@@ -10,11 +10,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// upgrader upgrades HTTP connections to WebSocket connections.
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-	// Allow all origins for simplicity.
+	// Allow all origins.
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
@@ -34,7 +33,7 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 }
 
 // serveGame serves the game page (game.html). It expects a hub hash in the URL
-// (e.g. /<hubHash>) and a query parameter "name" containing the client’s name.
+// (e.g. /<hubHash>) and a query parameter "name" containing the client's name.
 func serveGame(w http.ResponseWriter, r *http.Request) {
 	hubHash := r.URL.Path[1:]
 	if _, ok := hubs[hubHash]; !ok {
@@ -59,7 +58,7 @@ func serveGame(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, data)
 }
 
-// createHub creates a new hub and returns its unique hash in JSON.
+// createHub generates a new hub, starts its run loop, and returns its hash as JSON.
 func createHub(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -81,8 +80,8 @@ func createHub(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-// serveWs upgrades an HTTP connection to a WebSocket for a given hub.
-// It expects query parameters "hub" (the hub hash) and "name" (the client's unique name).
+// serveWs upgrades an HTTP connection to a WebSocket.
+// It requires query parameters "hub" (the hub hash) and "name" (the client's unique name).
 func serveWs(w http.ResponseWriter, r *http.Request) {
 	hubHash := r.URL.Query().Get("hub")
 	name := r.URL.Query().Get("name")
@@ -111,11 +110,14 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 		log.Println("Upgrade error:", err)
 		return
 	}
+	// Create a new client with an initial score of 10.
 	client := &Client{
-		hub:  hub,
-		conn: conn,
-		send: make(chan []byte, 256),
-		name: name,
+		hub:        hub,
+		conn:       conn,
+		send:       make(chan []byte, 256),
+		name:       name,
+		score:      10,
+		eliminated: false,
 	}
 	hub.register <- client
 

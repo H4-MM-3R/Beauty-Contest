@@ -7,7 +7,7 @@ import (
 
 // GenerateHubHash returns a random 8-character hex string.
 func GenerateHubHash() (string, error) {
-	bytes := make([]byte, 4) // 4 bytes -> 8 hex characters.
+	bytes := make([]byte, 4) // 4 bytes => 8 hex characters.
 	if _, err := rand.Read(bytes); err != nil {
 		return "", err
 	}

@@ -3,19 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <title>Game - Hub {{.HubHash}}</title>
+    <style>
+        #activePlayers, #eliminatedPlayers {
+            float: left;
+            width: 45%;
+            margin: 2%;
+        }
+        #eliminatedPlayers {
+            border-left: 1px solid #ccc;
+        }
+        .clear { clear: both; }
+        #gameOverDialog {
+            display: none;
+            position: fixed;
+            top: 30%;
+            left: 30%;
+            width: 40%;
+            padding: 20px;
+            border: 2px solid #000;
+            background-color: #fff;
+        }
+    </style>
 </head>
 <body>
     <h1>Hub: {{.HubHash}}</h1>
     <h2>Your Name: {{.Name}}</h2>
-    <div id="players">
-         <!-- List of players and their responses will appear here -->
+    
+    <div id="activePlayers">
+         <h3>Active Players</h3>
+         <ul id="activeList"></ul>
     </div>
+    <div id="eliminatedPlayers">
+         <h3>Eliminated Players</h3>
+         <ul id="eliminatedList"></ul>
+    </div>
+    <div class="clear"></div>
+    
     <div>
          <input type="number" id="numberInput" min="0" max="100" placeholder="Enter a number (0-100)">
          <button id="sendBtn">Send</button>
     </div>
-    <div id="result">
-         <!-- When the round completes, the average result is shown here -->
+    
+    <div id="roundInfo"></div>
+    
+    <div id="gameOverDialog">
+         <h2>Game Over</h2>
+         <div id="leaderboard"></div>
+         <button id="restartBtn">Start New Game</button>
+         <button id="exitBtn">Exit</button>
     </div>
 
     <script>
@@ -30,23 +65,50 @@
         ws.onmessage = function(event) {
             try {
                 const data = JSON.parse(event.data);
-                if(data.type === "state") {
-                    let html = "<h3>Players</h3><ul>";
-                    data.players.forEach(function(player) {
-                        html += "<li>" + player.name + " : " + player.response + "</li>";
+                // Separate active and eliminated players.
+                const activePlayers = [];
+                const eliminatedPlayers = [];
+                data.players.forEach(function(player) {
+                    if(player.eliminated) {
+                        eliminatedPlayers.push(player);
+                    } else {
+                        activePlayers.push(player);
+                    }
+                });
+                // Update active players list.
+                let activeHTML = "";
+                activePlayers.forEach(function(player) {
+                    activeHTML += "<li>" + player.name + " (Score: " + player.score + ") - ";
+                    activeHTML += (typeof player.response === "number") ? player.response : player.response;
+                    activeHTML += "</li>";
+                });
+                document.getElementById("activeList").innerHTML = activeHTML;
+                // Update eliminated players list.
+                let elimHTML = "";
+                eliminatedPlayers.forEach(function(player) {
+                    elimHTML += "<li>" + player.name + " (Score: " + player.score + ")</li>";
+                });
+                document.getElementById("eliminatedList").innerHTML = elimHTML;
+                
+                // Show round info if available.
+                if(data.type === "result") {
+                    let info = "<h3>Round Result</h3>";
+                    info += "<p>Average: " + data.average.toFixed(2) + " | Target: " + data.target.toFixed(2) + "</p>";
+                    info += "<p>Winner(s): " + data.winners.join(", ") + "</p>";
+                    document.getElementById("roundInfo").innerHTML = info;
+                } else if(data.type === "gameover") {
+                    // Build leaderboard sorted by score.
+                    let leaderboardHTML = "<h3>Leaderboard</h3><ol>";
+                    data.players.sort((a,b) => b.score - a.score).forEach(function(player) {
+                        leaderboardHTML += "<li>" + player.name + " (Score: " + player.score + ")</li>";
                     });
-                    html += "</ul>";
-                    document.getElementById("players").innerHTML = html;
-                    document.getElementById("result").innerText = "";
-                } else if(data.type === "result") {
-                    let html = "<h3>Round Result</h3><ul>";
-                    data.players.forEach(function(player) {
-                        html += "<li>" + player.name + " : " + player.response + "</li>";
-                    });
-                    html += "</ul>";
-                    html += "<p>Average: " + data.average.toFixed(2) + "</p>";
-                    document.getElementById("players").innerHTML = html;
-                    document.getElementById("result").innerText = "Round complete. Resetting in 10 seconds...";
+                    leaderboardHTML += "</ol>";
+                    document.getElementById("leaderboard").innerHTML = leaderboardHTML;
+                    // Show game over dialog.
+                    document.getElementById("gameOverDialog").style.display = "block";
+                } else {
+                    // Clear round info for ongoing rounds.
+                    document.getElementById("roundInfo").innerHTML = "";
                 }
             } catch(e) {
                 console.error("Error parsing message", e);
@@ -63,6 +125,14 @@
                 ws.send(num);
                 document.getElementById("numberInput").value = "";
             }
+        });
+
+        document.getElementById("restartBtn").addEventListener("click", function() {
+            // Reload the page to start a new game (you might implement a better reset).
+            window.location.href = "/";
+        });
+        document.getElementById("exitBtn").addEventListener("click", function() {
+            window.close();
         });
     </script>
 </body>
