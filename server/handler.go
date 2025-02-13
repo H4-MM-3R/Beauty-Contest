@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -82,7 +83,12 @@ func createHub(w http.ResponseWriter, r *http.Request) {
 
 // serveWs upgrades an HTTP connection to a WebSocket.
 // It requires query parameters "hub" (the hub hash) and "name" (the client's unique name).
+
+// func serveWs(w http.ResponseWriter, r *http.Request) {
+// }
+
 func serveWs(w http.ResponseWriter, r *http.Request) {
+	fmt.Print("new connection\n")
 	hubHash := r.URL.Query().Get("hub")
 	name := r.URL.Query().Get("name")
 	if hubHash == "" || name == "" {
@@ -111,17 +117,27 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Create a new client with an initial score of 10.
-	client := &Client{
-		hub:        hub,
-		conn:       conn,
-		send:       make(chan []byte, 256),
-		name:       name,
-		score:      3,
-		eliminated: false,
+	client, ok := hub.players[name]
+	if ok {
+		fmt.Println("client already exists")
+		client.conn = conn
+		client.send = make(chan []byte, 256)
+	} else {
+
+		client = &Client{
+			hub:        hub,
+			conn:       conn,
+			send:       make(chan []byte, 256),
+			name:       name,
+			score:      3,
+			eliminated: false,
+		}
 	}
-	hub.register <- client
+
+    hub.register <- client
+
+	hub.broadcastState("state", nil, nil, nil)
 
 	go client.writePump()
 	go client.readPump()
 }
-
