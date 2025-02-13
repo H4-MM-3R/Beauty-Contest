@@ -15,11 +15,13 @@ var addr = flag.String("addr", ":8080", "http service address")
 func StartServer() {
 	flag.Parse()
 
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
 	// "/" serves home.html or game.html depending on the URL.
 	http.HandleFunc("/", defaultHandler)
 	http.HandleFunc("/create-hub", createHub)
 	http.HandleFunc("/ws", serveWs)
-
 	log.Printf("Listening on http://localhost%s", *addr)
 	if err := http.ListenAndServe(*addr, nil); err != nil {
 		log.Fatal("ListenAndServe: ", err)
@@ -35,4 +37,3 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) {
 		serveGame(w, r)
 	}
 }
-

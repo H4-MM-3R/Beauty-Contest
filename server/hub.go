@@ -10,13 +10,13 @@ import (
 
 type PlayerState struct {
 	Name       string      `json:"name"`
-	Response   interface{} `json:"response"` 
+	Response   interface{} `json:"response"`
 	Score      int         `json:"score"`
 	Eliminated bool        `json:"eliminated"`
 }
 
 type StateMessage struct {
-	Type    string        `json:"type"` 
+	Type    string        `json:"type"`
 	Players []PlayerState `json:"players"`
 	Target  *float64      `json:"target,omitempty"`
 	Average *float64      `json:"average,omitempty"`
@@ -29,13 +29,14 @@ type Response struct {
 }
 
 type Hub struct {
-	clients    map[*Client]bool
-	register   chan *Client
-	unregister chan *Client
-	response   chan *Response
+	clients     map[*Client]bool
+	register    chan *Client
+	unregister  chan *Client
+	response    chan *Response
 	responses   map[*Client]int
-	roundLocked bool 
-	gameOver    bool 
+	roundLocked bool
+	gameOver    bool
+	players     map[string]*Client
 }
 
 func newHub() *Hub {
@@ -45,6 +46,7 @@ func newHub() *Hub {
 		unregister: make(chan *Client),
 		response:   make(chan *Response),
 		responses:  make(map[*Client]int),
+		players:    make(map[string]*Client),
 	}
 }
 
@@ -122,6 +124,9 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
+			if _, ok := h.players[client.name]; !ok {
+				h.players[client.name] = client
+			}
 			h.clients[client] = true
 			h.broadcastState("state", nil, nil, nil)
 
@@ -137,10 +142,9 @@ func (h *Hub) run() {
 			if h.roundLocked {
 				break
 			}
-            if res.client.eliminated {
-		    	h.broadcastState("eliminated", nil, nil, nil)
-            }
-
+			if res.client.eliminated {
+				h.broadcastState("eliminated", nil, nil, nil)
+			}
 
 			// Record the response only if not already recorded.
 			if _, exists := h.responses[res.client]; !exists {
@@ -202,7 +206,6 @@ func (h *Hub) run() {
 					}
 				}
 
-
 				// Check for game over.
 				activePlayers := 0
 				for client := range h.clients {
@@ -213,11 +216,11 @@ func (h *Hub) run() {
 
 				if activePlayers <= 1 {
 					h.broadcastState("gameover", &avg, &target, winners)
-                    h.roundLocked = true
+					h.roundLocked = true
 				} else {
-                    // Broadcast round result (including average and target).
-                    h.broadcastState("result", &avg, &target, winners)
-                    h.roundLocked = true
+					// Broadcast round result (including average and target).
+					h.broadcastState("result", &avg, &target, winners)
+					h.roundLocked = true
 					resetTimer = time.After(10 * time.Second)
 				}
 
@@ -235,4 +238,3 @@ func (h *Hub) run() {
 		}
 	}
 }
-
