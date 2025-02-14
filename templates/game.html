@@ -1,145 +1,45 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
     <title>Game - Hub {{.HubHash}}</title>
-    <style>
-        #activePlayers, #eliminatedPlayers {
-            float: left;
-            width: 45%;
-            margin: 2%;
-        }
-        #eliminatedPlayers {
-            border-left: 1px solid #ccc;
-        }
-        .clear { clear: both; }
-        #gameOverDialog {
-            display: none;
-            position: fixed;
-            top: 30%;
-            left: 30%;
-            width: 40%;
-            padding: 20px;
-            border: 2px solid #000;
-            background-color: #fff;
-        }
-    </style>
-</head>
-<body>
-    <h1>Hub: {{.HubHash}}</h1>
-    <h2>Your Name: {{.Name}}</h2>
-    
-    <div id="activePlayers">
-         <h3>Active Players</h3>
-         <ul id="activeList"></ul>
-    </div>
-    <div id="eliminatedPlayers">
-         <h3>Eliminated Players</h3>
-         <ul id="eliminatedList"></ul>
-    </div>
-    <div class="clear"></div>
-    
-    <div>
-         <input type="number" id="numberInput" min="0" max="100" placeholder="Enter a number (0-100)">
-         <button id="sendBtn">Send</button>
-    </div>
-    
-    <div id="roundInfo"></div>
-    
-    <div id="gameOverDialog">
-         <h2>Game Over</h2>
-         <div id="leaderboard"></div>
-         <button id="restartBtn">Start New Game</button>
-         <button id="exitBtn">Exit</button>
+    <link rel="stylesheet" href="/static/game.css" />
+  </head>
+  <body>
+    <div id="gameContainer" data-hubhash="{{.HubHash}}" data-name="{{.Name}}">
+      <div id="topBar">
+        <div id="playerInfo">
+          <h1 id="playerName">{{.Name}}</h1>
+        </div>
+        <div id="hubInfo">
+          <p id="hubId">Hub: {{.HubHash}}</p>
+          <button id="inviteBtn">Copy Invite Link</button>
+        </div>
+      </div>
+
+      <div id="playerSection">
+        <div id="activePlayersSection">
+          <h2>Active Players</h2>
+          <div id="activeList"></div>
+        </div>
+
+        <div id="eliminatedPlayersSection">
+          <h2>Eliminated Players</h2>
+          <ul id="eliminatedList"></ul>
+        </div>
+      </div>
+
+      <div id="numberGrid"></div>
+
+      <div id="roundInfo"></div>
+      <div id="gameOverDialog" style="display: none">
+        <h2>Game Over</h2>
+        <div id="leaderboard"></div>
+        <button id="restartBtn">Start New Game</button>
+        <button id="exitBtn">Exit</button>
+      </div>
     </div>
 
-    <script>
-        const hubHash = "{{.HubHash}}";
-        const name = "{{.Name}}";
-        const ws = new WebSocket("ws://" + window.location.host + "/ws?hub=" + hubHash + "&name=" + encodeURIComponent(name));
-
-        ws.onopen = function() {
-            console.log("Connected to hub " + hubHash);
-        };
-
-        ws.onmessage = function(event) {
-            try {
-                const data = JSON.parse(event.data);
-                console.log("data is", data)
-                // Separate active and eliminated players.
-                const activePlayers = [];
-                const eliminatedPlayers = [];
-                data.players.forEach(function(player) {
-                    if(player.eliminated) {
-                        eliminatedPlayers.push(player);
-                    } else {
-                        activePlayers.push(player);
-                    }
-                });
-                // Update active players list.
-                let activeHTML = "";
-                activePlayers.forEach(function(player) {
-                    activeHTML += "<li>" + player.name + " (Score: " + player.score + ") - ";
-                    activeHTML += (typeof player.response === "number") ? "Responded" : player.response;
-                    activeHTML += "</li>";
-                });
-                document.getElementById("activeList").innerHTML = activeHTML;
-                // Update eliminated players list.
-                let elimHTML = "";
-                eliminatedPlayers.forEach(function(player) {
-                    elimHTML += "<li>" + player.name + " (Score: " + player.score + ")</li>";
-                });
-                document.getElementById("eliminatedList").innerHTML = elimHTML;
-
-                if(data.players.find(p => p.name === name) && p.eliminated){
-                    alert("You have been eliminated from the game.")
-                }
-                
-                // Show round info if available.
-                if(data.type === "result") {
-                    let info = "<h3>Round Result</h3>";
-                    info += "<p>Average: " + data.average.toFixed(2) + " | Target: " + data.target.toFixed(2) + "</p>";
-                    info += "<p>Winner(s): " + data.winners.join(", ") + "</p>";
-                    document.getElementById("roundInfo").innerHTML = info;
-                } else if(data.type === "gameover") {
-                    // Build leaderboard sorted by score.
-                    let leaderboardHTML = "<h3>Leaderboard</h3><ol>";
-                    data.players.sort((a,b) => b.score - a.score).forEach(function(player) {
-                        leaderboardHTML += "<li>" + player.name + " (Score: " + player.score + ")</li>";
-                    });
-                    leaderboardHTML += "</ol>";
-                    document.getElementById("leaderboard").innerHTML = leaderboardHTML;
-                    // Show game over dialog.
-                    document.getElementById("gameOverDialog").style.display = "block";
-                } else {
-                    // Clear round info for ongoing rounds.
-                    document.getElementById("roundInfo").innerHTML = "";
-                }
-            } catch(e) {
-                console.error("Error parsing message", e);
-            }
-        };
-
-        ws.onclose = function() {
-            alert("WebSocket connection closed.");
-        };
-
-        document.getElementById("sendBtn").addEventListener("click", function() {
-            const num = document.getElementById("numberInput").value;
-            if(num !== "") {
-                ws.send(num);
-                document.getElementById("numberInput").value = "";
-            }
-        });
-
-        document.getElementById("restartBtn").addEventListener("click", function() {
-            // Reload the page to start a new game (you might implement a better reset).
-            window.location.href = "/";
-        });
-        document.getElementById("exitBtn").addEventListener("click", function() {
-            window.close();
-        });
-    </script>
-</body>
+    <script src="/static/game.js"></script>
+  </body>
 </html>
-

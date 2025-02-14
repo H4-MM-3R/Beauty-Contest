@@ -10,7 +10,6 @@ document.getElementById("createHubBtn").addEventListener("click", function () {
                     alert("Name is required");
                     return;
                 }
-                // Redirect to the game page with hub hash and name.
                 window.location.href =
                     "/" + data.hub + "?name=" + encodeURIComponent(name);
             }
@@ -23,8 +22,7 @@ document.getElementById("createHubBtn").addEventListener("click", function () {
 document.getElementById("joinHubForm").addEventListener("submit", function (e) {
     e.preventDefault();
     let hubHash = document.getElementById("hubInput").value.trim();
-    let name = document.getElementById("username").value.trim();
-    if (hubHash && name) {
-        window.location.href = "/" + hubHash + "?name=" + encodeURIComponent(name);
+    if (hubHash) {
+        window.location.href = "/" + hubHash;
     }
 });

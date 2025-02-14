@@ -9,20 +9,17 @@
 
   <body>
 
-    <h1>Welcome to the Keynesian Beauty Contest Game</h1>
+    <div id="container">
+    <h1 id="title">Beauty Contest</h1>
     <button id="createHubBtn">Create New Hub</button>
-    <br /><br />
+    <br />
     <form id="joinHubForm">
-      <label for="hubInput">Enter Hub Hash to Join:</label>
-      <input type="text" id="hubInput" name="hub" required />
-      <br />
-      <label for="username">Your Name:</label>
-      <input type="text" id="username" name="name" required />
-      <button type="submit">Join Hub</button>
+      <input type="text" id="hubInput" name="hub" required placeholder="Enter Hub Hash to Join:" />
+      <button id="hubSubmit" type="submit">Join Hub</button>
     </form>
+    </div>
 
     <script src="/static/home.js"></script>
-
   </body>
 
 </html>

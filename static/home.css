@@ -2,11 +2,25 @@ body {
   font-family: Arial, sans-serif;
   margin: 20px;
   background-color: #f9f9f9;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 90vh;
+}
+
+#container {
+  max-width: 600px;
+  margin: auto;
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
 }
 
 h1 {
   color: #333;
+  text-align: center;
 }
 
 button {
@@ -19,7 +33,7 @@ button {
 }
 
 button:hover {
-  background-color: #b58900;
+  background-color: #826200;
 }
 
 input[type="text"] {
@@ -29,6 +43,11 @@ input[type="text"] {
   border-radius: 4px;
 }
 
+
 form {
   margin-top: 15px;
+}
+
+#createHubBtn {
+    width: 100%;
 }

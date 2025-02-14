@@ -2,7 +2,6 @@ package main
 
 import "beauty/server"
 
-// "beauty/game"
 
 func main() {
     // gameInstance, scanner := game.InitGame()

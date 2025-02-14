@@ -83,7 +83,7 @@ func (h *Hub) broadcastState(msgType string, avg, target *float64, winners []str
 			if r, ok := h.responses[client]; ok {
 				resp = r
 			} else {
-				resp = "still needs to respond"
+				resp = "Waiting to respond..."
 			}
 		}
 		players = append(players, PlayerState{
@@ -218,10 +218,10 @@ func (h *Hub) run() {
 					h.broadcastState("gameover", &avg, &target, winners)
 					h.roundLocked = true
 				} else {
-					// Broadcast round result (including average and target).
+					// Broadcast round result (including responses, target and winner).
 					h.broadcastState("result", &avg, &target, winners)
 					h.roundLocked = true
-					resetTimer = time.After(10 * time.Second)
+					resetTimer = time.After(5 * time.Second)
 				}
 
 			} else {

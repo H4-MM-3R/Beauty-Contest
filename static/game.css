@@ -1,0 +1,219 @@
+/* Global Styles */
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background-color: #f2f2f2;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+
+#gameContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Top Bar: Player info and Hub info */
+#topBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+#playerInfo #playerName {
+    font-size: 2.5em;
+    /* Prominent player name */
+    margin: 0;
+}
+
+#hubInfo {
+    text-align: right;
+}
+
+#hubInfo #hubId {
+    font-size: 1em;
+    margin: 0;
+}
+
+#hubInfo #inviteBtn {
+    margin-top: 5px;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#hubInfo #inviteBtn:hover {
+    background-color: #0056b3;
+}
+
+/* Active Players Section (Center) */
+#activePlayersSection {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+#activePlayersSection h2 {
+    margin-bottom: 15px;
+}
+
+#activePlayers {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.activePlayerCard {
+    background: #fafafa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 150px;
+}
+
+.activePlayerCard .activePlayerName {
+    font-size: 1.2em;
+    margin: 0 0 10px;
+}
+
+.activePlayerCard .activePlayerScore {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 0;
+}
+
+.activePlayerCard .activePlayerResponse {
+    font-size: .7em;
+    margin: 0 0 10px;
+}
+
+#activeList {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Eliminated Players Section (Right) */
+#eliminatedPlayersSection {
+    margin-bottom: 30px;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#eliminatedPlayersSection h2 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+#eliminatedPlayersList {
+    list-style: none;
+    padding: 0;
+}
+
+#eliminatedPlayersList li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+}
+
+#eliminatedPlayersList li:last-child {
+    border-bottom: none;
+}
+
+/* Lower Part: Number Grid */
+#numberGrid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 5px;
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #fafafa;
+    border-radius: 8px;
+}
+
+.nullButton {
+    background-color: transparent;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+.numButton {
+    background-color: #4caf50;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+#numberGrid .numButton:hover {
+    background-color: #45a049;
+}
+
+/* Dialogs (Round Info & Game Over) */
+#gameOverDialog,
+#roundInfo {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 500px;
+    padding: 20px;
+    border: 2px solid #888;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+}
+
+#gameOverDialog h2,
+#roundInfo h3 {
+    margin-top: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #topBar {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    #activePlayers {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #numberGrid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}

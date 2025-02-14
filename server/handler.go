@@ -41,17 +41,47 @@ func serveGame(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Hub not found", http.StatusNotFound)
 		return
 	}
+
+    // Get the name from the query parameter.
+	name := r.URL.Query().Get("name")
+	if name == "" {
+		// If no name provided, serve a simple HTML+JS prompt.
+		w.Header().Set("Content-Type", "text/html")
+		w.Write([]byte(`
+			<!doctype html>
+			<html lang="en">
+			<head>
+				<meta charset="UTF-8">
+				<title>Enter Your Name</title>
+			</head>
+			<body>
+				<script>
+					var name = prompt("Enter your name:");
+					if (name) {
+						// Redirect to the same URL with the entered name.
+						window.location.href = window.location.pathname + "?name=" + encodeURIComponent(name);
+					} else {
+						document.write("Name is required to join the game.");
+					}
+				</script>
+			</body>
+			</html>
+		`))
+		return
+	}
+
+
 	tmplPath := filepath.Join("templates", "game.html")
 	tmpl, err := template.ParseFiles(tmplPath)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	name := r.URL.Query().Get("name")
-	if name == "" {
-		http.Error(w, "Name is required", http.StatusBadRequest)
-		return
-	}
+	// name := r.URL.Query().Get("name")
+	// if name == "" {
+	// 	http.Error(w, "Name is required", http.StatusBadRequest)
+	// 	return
+	// }
 	data := map[string]string{
 		"HubHash": hubHash,
 		"Name":    name,
@@ -135,8 +165,6 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	}
 
     hub.register <- client
-
-	hub.broadcastState("state", nil, nil, nil)
 
 	go client.writePump()
 	go client.readPump()
