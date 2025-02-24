@@ -160,51 +160,17 @@ func (h *Hub) run() {
 			}
 
 			if len(h.responses) == activeCount && activeCount > 0 {
-				// All active players have responded: complete the round.
-				sum := 0
-				for client, val := range h.responses {
-					if !client.eliminated {
-						sum += val
-					}
-				}
-				avg := float64(sum) / float64(activeCount)
-				target := avg * 0.8
+                var winners []string
+                var avg float64
+                var target float64
+                switch activeCount {
+                case 2:
+                    winners, avg, target = twoPlayerLogic(h)
+                default:
+                    winners, avg, target = defaultLogic(h, activeCount)
+                }
 
-				// Determine winners: active players whose response is closest to the target.
-				var minDiff float64 = 1e9
-				winners := []string{}
-				for client, val := range h.responses {
-					if client.eliminated {
-						continue
-					}
-					diff := abs(float64(val) - target)
-					if diff < minDiff {
-						minDiff = diff
-						winners = []string{client.name}
-					} else if diff == minDiff {
-						winners = append(winners, client.name)
-					}
-				}
-
-				// Update scores for each active player.
-				for client := range h.clients {
-					if client.eliminated {
-						continue
-					}
-					isWinner := false
-					for _, w := range winners {
-						if w == client.name {
-							isWinner = true
-							break
-						}
-					}
-					if !isWinner {
-						client.score--
-						if client.score <= 0 {
-							client.eliminated = true
-						}
-					}
-				}
+                updateScores(h, winners)
 
 				// Check for game over.
 				activePlayers := 0
